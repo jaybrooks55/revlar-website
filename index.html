@@ -1,200 +1,218 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Revlar — AI Media Verification You Can Defend</title>
-<meta name="description" content="Revlar verifies whether a video, audio file, or image is AI-generated or authentic — corroborated by multiple independent detection engines, reviewed by a human analyst, and delivered as a court-ready report. Veteran-Owned. First case free." />
-<meta name="theme-color" content="#FFFFFF" />
+          <button data-modal="terms">Terms of Service</button>
+        </div>
+        <div class="foot-col">
+          <h5>Get started</h5>
+          <a href="#contact">Request a free case</a>
+        </div>
+      </div>
+    </div>
 
-<!-- Open Graph -->
-<meta property="og:title" content="Revlar — Know what's real." />
-<meta property="og:description" content="Court-ready verification of AI-generated and deepfaked media. Multiple engines, human review, defensible documentation." />
-<meta property="og:type" content="website" />
+    <div class="foot-bottom">
+      <span>© <span id="year"></span> Revlar LLC · A Texas company · Veteran-Owned Small Business</span>
+      <span>Know what's real.</span>
+    </div>
+  </div>
+</footer>
 
-<style>
-  /* ============================================================
-     REVLAR — single-file marketing site
-     Palette: deep navy world, single electric-cyan accent.
-     ============================================================ */
+<!-- ============================ MODALS ============================ -->
+<div class="modal-overlay" id="modal-privacy" role="dialog" aria-modal="true" aria-labelledby="privacy-title">
+  <div class="modal">
+    <button class="modal-close" data-close aria-label="Close">&times;</button>
+    <h3 id="privacy-title">Privacy Policy</h3>
+    <div class="updated">Plain-language summary</div>
+    <p>Revlar LLC respects the sensitivity of the material you share with us. This summary explains, in plain terms, how we handle your information.</p>
+    <h4>What we collect</h4>
+    <p>Information you provide through our contact form (such as your name, email, organization, and role), and any media or context you submit for a case.</p>
+    <h4>How we use it</h4>
+    <p>Solely to respond to your inquiry and to perform the verification you've requested. We do not sell your information, and we don't use submitted media for any purpose beyond your case.</p>
+    <h4>How it's handled</h4>
+    <p>Contact form submissions are delivered to us by email through a third-party form provider. Case material is treated as confidential. If you have specific retention or handling requirements, tell us when you reach out.</p>
+    <h4>Contact</h4>
+    <p>Questions about privacy? Email <a href="mailto:cases@revlar.io" style="color:var(--cyan-bright)">cases@revlar.io</a>.</p>
+    <p style="margin-top:16px;color:var(--muted-2);font-size:13px">This summary is provided for transparency and is not legal advice. A full policy is available on request.</p>
+  </div>
+</div>
 
-  :root {
-    --navy-950: #060E1C;
-    --navy-900: #FFFFFF;   /* base background */
-    --navy-850: #EAF1F8;
-    --navy-800: #F6F9FC;   /* cards / panels */
-    --navy-750: #13243F;
-    --navy-700: #18304F;
+<div class="modal-overlay" id="modal-terms" role="dialog" aria-modal="true" aria-labelledby="terms-title">
+  <div class="modal">
+    <button class="modal-close" data-close aria-label="Close">&times;</button>
+    <h3 id="terms-title">Terms of Service</h3>
+    <div class="updated">Plain-language summary</div>
+    <p>These plain-language terms describe the basis on which Revlar LLC provides its services.</p>
+    <h4>What we provide</h4>
+    <p>Revlar analyzes submitted media using multiple independent detection engines and human analyst review, and delivers a documented report with our verdict and confidence level.</p>
+    <h4>What we don't promise</h4>
+    <p>Detection is probabilistic. We do not guarantee a particular outcome or absolute accuracy, and a report reflects our professional assessment based on the engines and information available at the time.</p>
+    <h4>Your responsibilities</h4>
+    <p>You confirm you have the right to submit the media you send us, and you agree to use our reports lawfully and honestly.</p>
+    <h4>Engagement</h4>
+    <p>Pricing, turnaround, and scope are confirmed before paid work begins. The first case is offered free of charge with no obligation to continue.</p>
+    <h4>Contact</h4>
+    <p>Questions about these terms? Email <a href="mailto:cases@revlar.io" style="color:var(--cyan-bright)">cases@revlar.io</a>.</p>
+    <p style="margin-top:16px;color:var(--muted-2);font-size:13px">This summary is provided for transparency and is not legal advice. Full terms are available on request.</p>
+  </div>
+</div>
 
-    --cyan:        #0EA5E9;
-    --cyan-bright: #0284C7;
-    --cyan-dim:    #0369A1;
-    --cyan-glow:   rgba(14, 165, 233, 0.16);
+<script>
+(function () {
+  "use strict";
 
-    --text:    #0B1526;
-    --muted:   #4C5C77;
-    --muted-2: #7C8AA3;
+  // Mark JS as running before anything else — the .reveal hide/animate
+  // behavior only activates under this class, so if this script never runs
+  // (blocked, stripped, errors out), the page simply shows everything as-is.
+  document.documentElement.classList.add("js-ready");
 
-    --line:        rgba(15, 32, 56, 0.10);
-    --line-strong: rgba(15, 32, 56, 0.18);
+  // ---- year ----
+  document.getElementById("year").textContent = new Date().getFullYear();
 
-    --good: #16A34A;
-    --warn: #B45309;
-    --flag: #E11D48;
+  // ---- header scroll state ----
+  var header = document.getElementById("header");
+  var onScroll = function () {
+    if (window.scrollY > 8) header.classList.add("scrolled");
+    else header.classList.remove("scrolled");
+  };
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
 
-    --radius: 14px;
-    --radius-sm: 10px;
-    --maxw: 1140px;
+  // ---- mobile menu ----
+  var menuBtn = document.getElementById("menuBtn");
+  var mobileMenu = document.getElementById("mobileMenu");
+  var toggleMenu = function (force) {
+    var open = force !== undefined ? force : !mobileMenu.classList.contains("open");
+    mobileMenu.classList.toggle("open", open);
+    menuBtn.setAttribute("aria-expanded", open ? "true" : "false");
+  };
+  menuBtn.addEventListener("click", function () { toggleMenu(); });
+  mobileMenu.querySelectorAll("a").forEach(function (a) {
+    a.addEventListener("click", function () { toggleMenu(false); });
+  });
 
-    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", sans-serif;
-    --mono: "SF Mono", "JetBrains Mono", "Roboto Mono", ui-monospace, Menlo, Monaco, Consolas, monospace;
+  // ---- audience tabs ----
+  var tabs = Array.prototype.slice.call(document.querySelectorAll(".tab"));
+  var panels = {
+    "t-news": "p-news", "t-law": "p-law", "t-ins": "p-ins", "t-fin": "p-fin"
+  };
+  function selectTab(tab) {
+    tabs.forEach(function (t) {
+      var on = t === tab;
+      t.setAttribute("aria-selected", on ? "true" : "false");
+      var panel = document.getElementById(panels[t.id]);
+      panel.classList.toggle("active", on);
+      if (on) { panel.removeAttribute("hidden"); } else { panel.setAttribute("hidden", ""); }
+    });
+  }
+  tabs.forEach(function (tab, i) {
+    tab.addEventListener("click", function () { selectTab(tab); });
+    tab.addEventListener("keydown", function (e) {
+      if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+        e.preventDefault();
+        var dir = e.key === "ArrowRight" ? 1 : -1;
+        var next = tabs[(i + dir + tabs.length) % tabs.length];
+        next.focus(); selectTab(next);
+      }
+    });
+  });
 
-    --shadow: 0 24px 60px -28px rgba(15, 23, 42, 0.18);
+  // ---- FAQ accordion ----
+  document.querySelectorAll(".faq-q").forEach(function (q) {
+    q.addEventListener("click", function () {
+      var item = q.parentElement;
+      var ans = item.querySelector(".faq-a");
+      var open = item.classList.toggle("open");
+      ans.style.maxHeight = open ? ans.scrollHeight + "px" : null;
+    });
+  });
+
+  // ---- modals ----
+  function openModal(id) {
+    var m = document.getElementById("modal-" + id);
+    if (m) { m.classList.add("open"); document.body.style.overflow = "hidden"; }
+  }
+  function closeModals() {
+    document.querySelectorAll(".modal-overlay.open").forEach(function (m) { m.classList.remove("open"); });
+    document.body.style.overflow = "";
+  }
+  document.querySelectorAll("[data-modal]").forEach(function (b) {
+    b.addEventListener("click", function () { openModal(b.getAttribute("data-modal")); });
+  });
+  document.querySelectorAll("[data-close]").forEach(function (b) {
+    b.addEventListener("click", closeModals);
+  });
+  document.querySelectorAll(".modal-overlay").forEach(function (o) {
+    o.addEventListener("click", function (e) { if (e.target === o) closeModals(); });
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") { closeModals(); toggleMenu(false); }
+  });
+
+  // ---- reveal on scroll ----
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!reduce && "IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) { en.target.classList.add("in"); io.unobserve(en.target); }
+      });
+    }, { threshold: 0.12 });
+    document.querySelectorAll(".reveal").forEach(function (el) { io.observe(el); });
+  } else {
+    document.querySelectorAll(".reveal").forEach(function (el) { el.classList.add("in"); });
   }
 
-  * { box-sizing: border-box; }
-  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+  // ---- contact form (Web3Forms, no redirect) ----
+  var form = document.getElementById("caseForm");
+  var statusEl = document.getElementById("formStatus");
+  var submitBtn = document.getElementById("submitBtn");
 
-  body {
-    margin: 0;
-    font-family: var(--sans);
-    background: var(--navy-900);
-    color: var(--text);
-    line-height: 1.6;
-    font-size: 17px;
-    letter-spacing: 0.01em;
-    overflow-x: hidden;
-    /* subtle depth without a literal grid/waveform */
-    background-image:
-      radial-gradient(900px 520px at 78% -8%, rgba(14,165,233,0.10), transparent 60%),
-      radial-gradient(800px 600px at -10% 12%, rgba(14,165,233,0.05), transparent 55%);
-    background-attachment: fixed;
+  function setStatus(type, msg) {
+    statusEl.className = "form-status show " + type;
+    if (type === "success") {
+      statusEl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg><span>' + msg + "</span>";
+    } else {
+      statusEl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg><span>' + msg + "</span>";
+    }
   }
 
-  h1, h2, h3, h4 { line-height: 1.12; letter-spacing: -0.02em; font-weight: 650; margin: 0; }
-  p { margin: 0; }
-  a { color: inherit; text-decoration: none; }
+  form.addEventListener("submit", async function (e) {
+    e.preventDefault();
+    statusEl.className = "form-status";
 
-  ::selection { background: var(--cyan); color: var(--navy-950); }
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
 
-  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+    var key = form.querySelector('[name="access_key"]').value;
+    if (key === "YOUR_WEB3FORMS_KEY_HERE") {
+      setStatus("error", "This form isn't connected yet. Please email us directly at cases@revlar.io and we'll take it from there.");
+      return;
+    }
 
-  /* ---------- shared bits ---------- */
-  .eyebrow {
-    font-family: var(--mono);
-    font-size: 12px;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: var(--cyan);
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .eyebrow::before {
-    content: "";
-    width: 22px; height: 1px;
-    background: var(--cyan);
-    display: inline-block;
-    opacity: 0.7;
-  }
+    submitBtn.disabled = true;
+    var original = submitBtn.innerHTML;
+    submitBtn.textContent = "Sending…";
 
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 9px;
-    font-family: var(--sans);
-    font-size: 15px;
-    font-weight: 600;
-    letter-spacing: 0.01em;
-    padding: 13px 22px;
-    border-radius: 10px;
-    border: 1px solid transparent;
-    cursor: pointer;
-    transition: transform .15s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
-    white-space: nowrap;
-  }
-  .btn-primary {
-    background: var(--cyan);
-    color: var(--navy-950);
-    box-shadow: 0 10px 30px -10px var(--cyan-glow), inset 0 0 0 1px rgba(255,255,255,0.06);
-  }
-  .btn-primary:hover { background: var(--cyan-bright); transform: translateY(-1px); }
-  .btn-ghost {
-    background: transparent;
-    color: var(--text);
-    border-color: var(--line-strong);
-  }
-  .btn-ghost:hover { border-color: var(--cyan); color: var(--cyan-bright); }
-  .btn svg { width: 16px; height: 16px; }
-
-  /* ---------- header ---------- */
-  header {
-    position: sticky;
-    top: 0;
-    z-index: 50;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    background: rgba(255, 255, 255,0.72);
-    border-bottom: 1px solid transparent;
-    transition: border-color .3s ease, background .3s ease;
-  }
-  header.scrolled { border-bottom-color: var(--line); background: rgba(255, 255, 255,0.9); }
-  .nav {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 70px;
-    gap: 20px;
-  }
-  .brand { display: inline-flex; align-items: center; gap: 11px; }
-  .brand .mark { width: 30px; height: 37px; flex: none; }
-  .brand .name {
-    font-weight: 700;
-    font-size: 20px;
-    letter-spacing: 0.04em;
-  }
-  .brand .name b { color: var(--cyan); font-weight: 700; }
-
-  .nav-links { display: flex; align-items: center; gap: 30px; }
-  .nav-links a {
-    font-size: 14.5px;
-    color: var(--muted);
-    font-weight: 500;
-    transition: color .18s ease;
-    position: relative;
-  }
-  .nav-links a:hover { color: var(--text); }
-
-  .nav-right { display: flex; align-items: center; gap: 16px; }
-
-  .vet-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    font-family: var(--mono);
-    font-size: 10.5px;
-    letter-spacing: 0.13em;
-    text-transform: uppercase;
-    color: var(--muted);
-    border: 1px solid var(--line);
-    padding: 6px 11px;
-    border-radius: 999px;
-    background: rgba(15,23,42,0.035);
-  }
-  .vet-badge svg { width: 13px; height: 13px; color: var(--cyan); }
-
-  .menu-btn {
-    display: none;
-    background: none; border: 1px solid var(--line-strong);
-    color: var(--text);
-    border-radius: 9px;
-    width: 42px; height: 42px;
-    cursor: pointer;
-    align-items: center; justify-content: center;
-  }
-  .menu-btn svg { width: 20px; height: 20px; }
-
-  /* ---------- hero ---------- */
-  .hero { padding: 84px 0 70px; position: relative; }
-  .hero-grid {
-    display: grid;
+    try {
+      var data = Object.fromEntries(new FormData(form));
+      var res = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify(data)
+      });
+      var json = await res.json();
+      if (json.success) {
+        form.reset();
+        setStatus("success", "Thank you — your request is in. We'll be in touch shortly about your free first case.");
+      } else {
+        setStatus("error", "Something went wrong sending your request. Please email us at cases@revlar.io and we'll respond right away.");
+      }
+    } catch (err) {
+      setStatus("error", "We couldn't reach the server. Please email us at cases@revlar.io and we'll respond right away.");
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = original;
+    }
+  });
+})();
+</script>
+</body>
+</html>
