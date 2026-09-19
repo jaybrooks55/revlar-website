@@ -1,98 +1,104 @@
-// ============================================================
-// REVLAR — analyze-case Edge Function
-// The detection pipeline. Runs SERVER-SIDE so the Hive / Resemble
-// keys never touch the browser. The portal calls this after a file
-// is uploaded; this downloads the file, runs the right engine,
-// derives a verdict + score, and writes it back to the case.
-//
-// Deploy:   supabase functions deploy analyze-case
-// Secrets:  supabase secrets set HIVE_KEY=... RESEMBLE_KEY=...
-//           (SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY are provided
-//            automatically by Supabase to deployed functions.)
-//
-// IMPORTANT: the exact Hive / Resemble request + response shapes
-// depend on your account and API version. The two mapping helpers
-// (hiveAnalyze / resembleAnalyze) are marked TODO — confirm them
-// against your engine dashboards, then this is production-ready.
-// ============================================================
-import { createClient } from "jsr:@supabase/supabase-js@2";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Revlar — AI Media Verification You Can Defend</title>
+<meta name="description" content="Revlar verifies whether a video, audio file, or image is AI-generated or authentic — corroborated by multiple independent detection engines, reviewed by a human analyst, and delivered as a court-ready report. Veteran-Owned. First case free." />
+<meta name="theme-color" content="#FFFFFF" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 124'%3E%3Cdefs%3E%3Cmask id='favmask' maskUnits='userSpaceOnUse' x='0' y='0' width='100' height='124'%3E%3Crect width='100' height='124' fill='%23fff'/%3E%3Cg fill='%23000' stroke='%23000' stroke-width='5' stroke-linejoin='round' stroke-linecap='round'%3E%3Ccircle cx='50' cy='10' r='3.5'/%3E%3Cpath d='M46.5 13 H53.5 V36 H46.5 Z'/%3E%3Cpath d='M50 36.5 L73 38 L77 43.5 L69 40.5 L50 40.8 L31 40.5 L23 43.5 L27 38 Z'/%3E%3Cpath d='M44 41 H56 L54 106 L50 122 L46 106 Z'/%3E%3C/g%3E%3C/mask%3E%3C/defs%3E%3Cpath d='M50 100 C44 95 27 86 22.5 66 C20 52 20 34 21 22 Q28 27 35.5 26 Q43 25 50 22.5 Q57 25 64.5 26 Q72 27 79 22 C80 34 80 52 77.5 66 C73 86 56 95 50 100 Z' fill='none' stroke='%230a0a0a' stroke-width='5' stroke-linejoin='round' stroke-linecap='round' mask='url(%23favmask)'/%3E%3Cg fill='none' stroke='%230a0a0a' stroke-width='5' stroke-linejoin='round' stroke-linecap='round'%3E%3Ccircle cx='50' cy='10' r='3.5'/%3E%3Cpath d='M46.5 13 H53.5 V36 H46.5 Z'/%3E%3Cpath d='M50 36.5 L73 38 L77 43.5 L69 40.5 L50 40.8 L31 40.5 L23 43.5 L27 38 Z'/%3E%3Cpath d='M44 41 H56 L54 106 L50 122 L46 106 Z'/%3E%3C/g%3E%3C/svg%3E" />
 
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const ANON = Deno.env.get("SUPABASE_ANON_KEY")!;
-const HIVE_KEY = Deno.env.get("HIVE_KEY") ?? "";
-const RESEMBLE_KEY = Deno.env.get("RESEMBLE_KEY") ?? "";
-const BUCKET = "case-files";
+<!-- Open Graph -->
+<meta property="og:title" content="Revlar — Know what's real." />
+<meta property="og:description" content="Court-ready verification of AI-generated and deepfaked media. Multiple engines, human review, defensible documentation." />
+<meta property="og:type" content="website" />
 
-// score → verdict thresholds (tune to taste)
-function verdictFromScore(score: number): string {
-  if (score >= 70) return "MANIPULATED";
-  if (score <= 38) return "AUTHENTIC";
-  return "INCONCLUSIVE";
-}
+<style>
+  /* ============================================================
+     REVLAR — single-file marketing site
+     Palette: deep navy world, single electric-cyan accent.
+     ============================================================ */
 
-// TODO: confirm against Hive Moderation API for your account/version.
-// Hive returns class probabilities; map the AI-generated/deepfake
-// probability to a 0-100 "manipulation" score.
-async function hiveAnalyze(bytes: Uint8Array, mime: string): Promise<{ score: number; raw: unknown }> {
-  const form = new FormData();
-  form.append("media", new Blob([bytes], { type: mime }), "evidence");
-  const res = await fetch("https://api.thehive.ai/api/v2/task/sync", {
-    method: "POST",
-    headers: { Authorization: `Token ${HIVE_KEY}` },
-    body: form,
-  });
-  const raw = await res.json();
-  // Example shape: raw.status[0].response.output[0].classes[] = { class, score }
-  let p = 0;
-  try {
-    const classes = raw?.status?.[0]?.response?.output?.[0]?.classes ?? [];
-    const hit = classes.find((c: any) => /ai_generated|deepfake|synthetic/i.test(c.class));
-    p = hit ? Number(hit.score) : 0;
-  } catch (_) { p = 0; }
-  return { score: Math.round(p * 100), raw };
-}
+  :root {
+    --navy-950: #060E1C;
+    --navy-900: #FFFFFF;   /* base background */
+    --navy-850: #EAF1F8;
+    --navy-800: #F6F9FC;   /* cards / panels */
+    --navy-750: #13243F;
+    --navy-700: #18304F;
 
-// TODO: confirm against Resemble Detect API for your account/version.
-async function resembleAnalyze(bytes: Uint8Array, mime: string): Promise<{ score: number; raw: unknown }> {
-  const res = await fetch("https://app.resemble.ai/api/v2/detect", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${RESEMBLE_KEY}`, "Content-Type": mime || "audio/wav" },
-    body: bytes,
-  });
-  const raw = await res.json();
-  // Example shape: raw.probability_fake (0..1) or raw.score
-  let p = 0;
-  try { p = Number(raw?.probability_fake ?? raw?.score ?? 0); } catch (_) { p = 0; }
-  if (p > 1) p = p / 100; // accept 0-100 or 0-1
-  return { score: Math.round(p * 100), raw };
-}
+    --cyan:        #0EA5E9;
+    --cyan-bright: #0284C7;
+    --cyan-dim:    #0369A1;
+    --cyan-glow:   rgba(14, 165, 233, 0.16);
 
-Deno.serve(async (req) => {
-  if (req.method !== "POST") return new Response("Method not allowed", { status: 405 });
+    --text:    #0B1526;
+    --muted:   #4C5C77;
+    --muted-2: #7C8AA3;
 
-  // require a signed-in analyst
-  const authHeader = req.headers.get("Authorization") ?? "";
-  const userClient = createClient(SUPABASE_URL, ANON, { global: { headers: { Authorization: authHeader } } });
-  const { data: { user } } = await userClient.auth.getUser();
-  if (!user) return new Response("Unauthorized", { status: 401 });
+    --line:        rgba(15, 32, 56, 0.10);
+    --line-strong: rgba(15, 32, 56, 0.18);
 
-  let body: { case_id?: string; file_path?: string; type?: string };
-  try { body = await req.json(); } catch (_) { return new Response("Bad request", { status: 400 }); }
-  const { case_id, file_path, type } = body;
-  if (!case_id || !file_path) return new Response("Missing case_id or file_path", { status: 400 });
+    --good: #16A34A;
+    --warn: #B45309;
+    --flag: #E11D48;
 
-  const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
+    --radius: 14px;
+    --radius-sm: 10px;
+    --maxw: 1140px;
 
-  // download the evidence file
-  const dl = await admin.storage.from(BUCKET).download(file_path);
-  if (dl.error || !dl.data) return new Response("File not found in storage", { status: 404 });
-  const bytes = new Uint8Array(await dl.data.arrayBuffer());
-  const mime = dl.data.type || "application/octet-stream";
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", sans-serif;
+    --mono: "SF Mono", "JetBrains Mono", "Roboto Mono", ui-monospace, Menlo, Monaco, Consolas, monospace;
 
-  // route to the right engine
-  let result: { score: number; raw: unknown };
-  try {
-    result = (type === "audio") ? await resembleAnalyze(bytes, mime) : await hiveAnalyze(bytes, mime);
-  } catch (e) {
-    return new Response("Engine call failed: " + (e as Error).message, { status: 502 });
+    --shadow: 0 24px 60px -28px rgba(15, 23, 42, 0.18);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    font-family: var(--sans);
+    background: var(--navy-900);
+    color: var(--text);
+    line-height: 1.6;
+    font-size: 17px;
+    letter-spacing: 0.01em;
+    overflow-x: hidden;
+    /* subtle depth without a literal grid/waveform */
+    background-image:
+      radial-gradient(900px 520px at 78% -8%, rgba(14,165,233,0.10), transparent 60%),
+      radial-gradient(800px 600px at -10% 12%, rgba(14,165,233,0.05), transparent 55%);
+    background-attachment: fixed;
+  }
+
+  h1, h2, h3, h4 { line-height: 1.12; letter-spacing: -0.02em; font-weight: 650; margin: 0; }
+  p { margin: 0; }
+  a { color: inherit; text-decoration: none; }
+
+  ::selection { background: var(--cyan); color: var(--navy-950); }
+
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+
+  /* ---------- shared bits ---------- */
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .eyebrow::before {
+    content: "";
+    width: 22px; height: 1px;
+    background: var(--cyan);
+    display: inline-block;
+    opacity: 0.7;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
